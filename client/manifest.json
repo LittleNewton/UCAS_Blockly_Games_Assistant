@@ -1,0 +1,75 @@
+{
+    // 清单文件的版本
+    "manifest_version": 2,
+    // 插件名称
+    "name": "A国科大积木编程助手",
+    // 插件版本
+    "version": "1.0",
+    // 插件描述
+    "description": "blockly.games 网站的使用助手，可完成云同步功能",
+    "icons": {
+        "16": "images/icon.png",
+        "48": "images/icon.png",
+        "128": "images/icon.png"
+    },
+
+
+
+    // 浏览器右上角图标设置，browser_action/page_action/app 三选一
+    "browser_action": {
+        "default_icon": "images/icon.png",
+        // 图标悬停时的标题
+        "default_title": "国科大积木编程助手",
+        "default_popup": "popup.html"
+    },
+    // 当某些特定页面打开才显示的图标
+
+
+
+
+
+    // 需要直接注入页面的 js
+    "content_scripts": [
+        {
+            "matches": ["https://blockly.games/*"],
+            "js": ["js/content-scripts.js"],
+            "css": ["css/custom.css"],
+            "run_at": "document_start"
+        }
+    ],
+
+
+
+    // 会一直常驻后台的 js 或后台页面
+    "background": {
+        "page": "background.html"
+    },
+
+
+
+    // 权限申请
+    "permissions": [
+        "contextMenus",                 // 右键菜单
+        "tabs",                         // 标签
+        "notifications",                // 通知
+        "webRequest",                   // web请求
+        "webRequestBlocking",
+        "storage",                      // 插件本地存储
+        "https://blockly.games/",       // 可以通过executeScript或者insertCSS访问的网站
+        "https://blockly.games/"        // 可以通过executeScript或者insertCSS访问的网站
+    ],
+
+
+
+    // 设置访问权限：普通页面能够直接访问的插件 js 资源列表，如果不设置是无法直接访问的
+    "web_accessible_resources": ["js/inject.js"],
+
+
+
+    // 插件主页
+    "homepage_url": "https://www.baidu.com",
+
+
+    // 默认语言
+    "dfault_locale": "zh_CN"
+}
