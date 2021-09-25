@@ -30,6 +30,8 @@ function register (username, password) {
 
 }
 
+
+
 // 用户登录账号，funcCode == 5
 function login(username, password) {
     let data = {
@@ -52,6 +54,37 @@ function login(username, password) {
         }
     }
 }
+
+
+
+// 请求上传上传本地进度，funcCode == 8
+function upload_game_data () {
+    let games = []
+    for (var i = 0; i < localStorage.length; i++) {
+        games[i] = {'gameName': localStorage.key(i), 'game_xml':localStorage.getItem(localStorage.key(i))};
+    }
+    let data = {
+        'funcCode': 8,
+        games,
+    }
+    socket.send(JSON.stringify(data))
+
+    // TO BE DELETED check 输出
+    console.log(JSON.stringify(data))
+
+    socket.onmessage = function(evt) {
+        var data = JSON.parse(evt.data);
+        if (data.funcCode == 0) {
+            console.log("发送本地游戏数据失败");
+        } else if (data.funcCode == 1) {
+            console.log("发送本地游戏数据成功");
+        } else {
+            console.log("因为其它原因发送失败");
+        }
+    }
+}
+
+
 
 var games = [
     {'gameName':'maze1', 'xml':'<xml xmlns="https://developers.google.com/blockly/xml"><block type="maze_forever"><statement name="DO"><block type="maze_moveForward"></block></statement></block></xml>'}, 

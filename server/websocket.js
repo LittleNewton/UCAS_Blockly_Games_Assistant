@@ -39,6 +39,7 @@ var webSocketServer = new WebSocketServer({ port: 9999 })
 webSocketServer.on('connection', function connection(ws) {
     // ROUTINE: 连接建立
     console.log('客户端连接成功')
+    var isLogin = false;
 
     // 监听对方发过来的 json
     ws.on('message', function incomming(message) {
@@ -60,6 +61,21 @@ webSocketServer.on('connection', function connection(ws) {
             console.log("有用户要登录~");
             if (data.username == 'newton' && data.password == '123456') {
                 data_respond = {'funcCode': 1}
+                ws.send(JSON.stringify(data_respond));
+            }
+            isLogin = true;
+        }
+
+
+
+        // 如果有用户要发送游戏数据
+        if (data.funcCode == 8) {
+            console.log("有用户要发送数据");
+            if (isLogin == true) {
+                console.log(data);
+            } else {
+                data_respond = {'funcCode': 0}
+                console.log("因为用户没有登录，所以驳回该请求！");
                 ws.send(JSON.stringify(data_respond));
             }
         }

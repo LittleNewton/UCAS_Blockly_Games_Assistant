@@ -26,8 +26,6 @@
 
 
 
-
-
     // 需要直接注入页面的 js
     "content_scripts": [
         {
