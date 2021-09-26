@@ -25,9 +25,10 @@ function register (username, password) {
             console.log("注册失败");
         } else if (data.funcCode == 1) {
             console.log("注册成功");
+        } else {
+            console.log("服务器无响应");
         }
     }
-
 }
 
 
