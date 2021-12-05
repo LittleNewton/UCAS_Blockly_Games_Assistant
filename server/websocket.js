@@ -1,9 +1,11 @@
 /*
  * 文件名：Server.js
  * 创建时间：2021 Sept. 23
+ * 修改时间：2021 Dec.  05
  * 作者：刘鹏
  * 文件描述：Node.js 后端代码，用于提供用户服务
  */
+
 
 
 /*
@@ -124,7 +126,7 @@ webSocketServer.on('connection', function connection(ws) {
         // 如果发起连接时，funcCode 不是登录、注册，且当前没有登录，则驳回所有请求
         if (isLogin == false && (data.funcCode != 4 || data.funcCode != 5)) {
             console.log("该发起连接的用户未登录，操作非法");
-            data_respond = {'funcCode': 0};
+            let data_respond = {'funcCode': 0};
             ws.send(JSON.stringify(data_respond));
         }
 
@@ -149,7 +151,7 @@ webSocketServer.on('connection', function connection(ws) {
         if (data.funcCode == 5) {
             console.log("有用户要登录~");
             if (data.username == 'newton' && data.password == '123456') {
-                data_respond = {'funcCode': 1}
+                let data_respond = {'funcCode': 1}
                 ws.send(JSON.stringify(data_respond));
             }
             isLogin = true;
@@ -163,10 +165,42 @@ webSocketServer.on('connection', function connection(ws) {
             if (isLogin == true) {
                 console.log(data);
             } else {
-                data_respond = {'funcCode': 0}
+                let data_respond = {'funcCode': 0}
+                console.log("因为用户没有登录，所以驳回该请求！");
+                ws.send(JSON.stringify(data_respond));
+            }
+        }
+
+
+
+        // 如果用户要下载云端的游戏数据
+        if (data.funcCode == 9) {
+            console.log("有用户要发送数据");
+            if (isLogin == true) {
+                console.log("");
+                let data_respond = {'funcCode': 1, games}
+                ws.send(JSON.stringify(data_respond));
+            } else {
+                let data_respond = {'funcCode': 0}
                 console.log("因为用户没有登录，所以驳回该请求！");
                 ws.send(JSON.stringify(data_respond));
             }
         }
     })
 })
+
+
+
+const games = [
+    {'gameName':'maze1', 'xml':'<xml xmlns="https://developers.google.com/blockly/xml"><block type="maze_forever"><statement name="DO"><block type="maze_moveForward"></block></statement></block></xml>'},
+    {'gameName':'maze2', 'xml':'<xml xmlns="https://developers.google.com/blockly/xml"><block type="maze_moveForward"><next><block type="maze_turn"><field name="DIR">turnLeft</field><next><block type="maze_moveForward"><next><block type="maze_turn"><field name="DIR">turnRight</field><next><block type="maze_moveForward"></block></next></block></next></block></next></block></next></block></xml>'},
+    {'gameName':'maze3', 'xml':'<xml xmlns="https://developers.google.com/blockly/xml"><block type="maze_forever"><statement name="DO"><block type="maze_moveForward"></block></statement></block></xml>'},
+    {'gameName':'maze4', 'xml':'<xml xmlns="https://developers.google.com/blockly/xml"><block type="maze_forever"><statement name="DO"><block type="maze_moveForward"><next><block type="maze_turn"><field name="DIR">turnLeft</field><next><block type="maze_moveForward"><next><block type="maze_turn"><field name="DIR">turnRight</field></block></next></block></next></block></next></block></statement></block></xml>'},
+    {'gameName':'maze5', 'xml':'<xml xmlns="https://developers.google.com/blockly/xml"><block type="maze_moveForward"><next><block type="maze_moveForward"><next><block type="maze_turn"><field name="DIR">turnLeft</field><next><block type="maze_forever"><statement name="DO"><block type="maze_moveForward"></block></statement></block></next></block></next></block></next></block></xml>'},
+    {'gameName':'maze6', 'xml':'<xml xmlns="https://developers.google.com/blockly/xml"><block type="maze_forever"><statement name="DO"><block type="maze_moveForward"><next><block type="maze_if"><field name="DIR">isPathLeft</field><statement name="DO"><block type="maze_turn"><field name="DIR">turnLeft</field></block></statement></block></next></block></statement></block></xml>'},
+    {'gameName':'maze7', 'xml':'<xml xmlns="https://developers.google.com/blockly/xml"><block type="maze_forever"><statement name="DO"><block type="maze_moveForward"><next><block type="maze_if"><field name="DIR">isPathRight</field><statement name="DO"><block type="maze_turn"><field name="DIR">turnRight</field></block></statement></block></next></block></statement></block></xml>'},
+    {'gameName':'maze8', 'xml':'<xml xmlns="https://developers.google.com/blockly/xml"><block type="maze_forever"><statement name="DO"><block type="maze_if"><field name="DIR">isPathForward</field><statement name="DO"><block type="maze_moveForward"></block></statement><next><block type="maze_if"><field name="DIR">isPathLeft</field><statement name="DO"><block type="maze_turn"><field name="DIR">turnLeft</field></block></statement><next><block type="maze_if"><field name="DIR">isPathRight</field><statement name="DO"><block type="maze_turn"><field name="DIR">turnRight</field></block></statement></block></next></block></next></block></statement></block></xml>'},
+    {'gameName':'maze9', 'xml':'<xml xmlns="https://developers.google.com/blockly/xml"><block type="maze_forever"><statement name="DO"><block type="maze_ifElse"><field name="DIR">isPathForward</field><statement name="DO"><block type="maze_moveForward"></block></statement><statement name="ELSE"><block type="maze_if"><field name="DIR">isPathLeft</field><statement name="DO"><block type="maze_turn"><field name="DIR">turnLeft</field></block></statement></block></statement></block></statement></block></xml>'},
+    {'gameName':'maze10', 'xml':'<xml xmlns="https://developers.google.com/blockly/xml"><block type="maze_forever"><statement name="DO"><block type="maze_ifElse"><field name="DIR">isPathLeft</field><statement name="DO"><block type="maze_turn"><field name="DIR">turnLeft</field><next><block type="maze_moveForward"></block></next></block></statement><statement name="ELSE"><block type="maze_ifElse"><field name="DIR">isPathForward</field><statement name="DO"><block type="maze_moveForward"></block></statement><statement name="ELSE"><block type="maze_turn"><field name="DIR">turnRight</field></block></statement></block></statement></block></statement></block></xml>'},
+];
+const game_data = {games}
