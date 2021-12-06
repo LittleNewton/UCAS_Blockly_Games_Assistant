@@ -1,7 +1,7 @@
 /*
  * 文件名：inject.js
  * 创建时间：2021 Sept. 23
- * 修改时间：2021 Dec.  05
+ * 修改时间：2021 Dec.  07
  * 作者：刘鹏
  * 文件描述：类 Chrome 浏览器的前端代码
  */
@@ -19,7 +19,7 @@ console.log("让我们开始！ from inject.js")
 /*
  * 与服务器建立 webSocket 连接
  */
-let socket = new WebSocket('ws://localhost:9999');
+let socket = new WebSocket('ws://localhost:9999')
 
 
 
@@ -37,13 +37,14 @@ function register (username, password) {
     console.log(JSON.stringify(data))
 
     socket.onmessage = function(evt) {
-        let data = JSON.parse(evt.data);
-        if (data.funcCode == 0) {
-            console.log("注册失败");
-        } else if (data.funcCode == 1) {
-            console.log("注册成功");
+        let data = JSON.parse(evt.data)
+        if (data.funcCode == '0') {
+            console.log("注册失败")
+        } else if (data.funcCode == '1') {
+            console.log("注册成功")
+            console.log("当前用户：" + data.current_user)
         } else {
-            console.log("服务器无响应");
+            console.log("服务器无响应")
         }
     }
 }
@@ -63,11 +64,13 @@ function login(username, password) {
     console.log(JSON.stringify(data))
 
     socket.onmessage = function(evt) {
-        let data = JSON.parse(evt.data);
-        if (data.funcCode == 0) {
-            console.log("登录失败");
-        } else if (data.funcCode == 1) {
-            console.log("登录成功");
+        let data = JSON.parse(evt.data)
+        if (data.funcCode == '0') {
+            console.log("登录失败")
+            console.log(data.error)
+        } else if (data.funcCode == '1') {
+            console.log("登录成功")
+            console.log("当前用户：" + data.current_user)
         }
     }
 }
@@ -78,25 +81,26 @@ function login(username, password) {
 function upload_game_data () {
     let data = {
         'funcCode': '8',
-        games,
+        'games': []
     }
     let games = []
     for (let i = 0; i < localStorage.length; i++) {
-        games[i] = {'gameName': localStorage.key(i), 'game_xml':localStorage.getItem(localStorage.key(i))};
+        games[i] = {'gameName': localStorage.key(i), 'xml':localStorage.getItem(localStorage.key(i))}
     }
+    data.games = games
     socket.send(JSON.stringify(data))
 
     // TO BE DELETED check 输出
     console.log(JSON.stringify(data))
 
     socket.onmessage = function(evt) {
-        let response = JSON.parse(evt.data);
+        let response = JSON.parse(evt.data)
         if (response.funcCode == 0) {
-            console.log("发送本地游戏数据失败");
+            console.log("发送本地游戏数据失败")
         } else if (response.funcCode == 1) {
-            console.log("发送本地游戏数据成功");
+            console.log("发送本地游戏数据成功")
         } else {
-            console.log("因为其它原因发送失败");
+            console.log("因为其它原因发送失败")
         }
     }
 }
@@ -115,21 +119,22 @@ function download_game_data () {
 
     // 收取服务器的反馈
     // (1) 如果服务器返回的 funcCode == 0，即错误返回，就发一个警告
-    // (2) 如果服务器返回的 funcCode == 1，则解析返回数据中的内容并与本地做对比，云端如果更多就用云端，本地多就提示是否 overwrite localStorage
+    // (2) 如果服务器返回的 funcCode == 1，则解析返回数据中的内容并与本地做对比，
+    //                                 云端如果更多就用云端，本地多就提示是否 overwrite localStorage
     socket.onmessage = function (evt) {
-        let response = JSON.parse(evt.data);
+        let response = JSON.parse(evt.data)
         if (response.funcCode == 0) {
-            console.log("请求拉取游戏进度失败");
+            console.log("CLIENT: 请求拉取游戏进度失败，云端没有存档")
         } else if (response.funcCode == 1) {
-            console.log("请求拉取云端游戏数据成功");
-            let len = response.games.length;
+            console.log("CLIENT: 请求拉取云端游戏数据成功")
+            let len = response.games.length
             for (let i = 0; i < len; i++) {
                 window.localStorage.setItem(response.games[i].gameName, response.games[i].xml)
                 console.log(response.games[i].gameName,response.games[i].xml)
             }
             console.log("浏览器 localStorage 已填写完成！")
         } else {
-            console.log("因为其它原因失败，client funcCode == 9");
+            console.log("因为其它原因失败，client funcCode == 9")
         }
     }
 }
@@ -138,5 +143,5 @@ function download_game_data () {
 
 // 在集成到 HTML 之前，这就是测试模块
 socket.onopen = function() {
-    login("newton", '123456');
+    // login("newton", '123456')
 }
