@@ -52,7 +52,7 @@ function register (username, password) {
 
 
 // 用户登录账号，funcCode == 5
-function login(username, password) {
+function login (username, password) {
     let data = {
         'funcCode': '5',
         'username': username,
@@ -71,6 +71,26 @@ function login(username, password) {
         } else if (data.funcCode == '1') {
             console.log("登录成功")
             console.log("当前用户：" + data.current_user)
+        }
+    }
+}
+
+
+
+// 用户请求下线，funcCode == 6
+function logout () {
+    let data = {
+        'funcCode': '6',
+    }
+    socket.send(JSON.stringify(data))
+    console.log(JSON.stringify(data))
+
+    socket.onmessage = function(evt) {
+        let data = JSON.parse(evt.data)
+        if (data.funcCode == '0') {
+            console.log("下线失败，请重试")
+        } else if (data.funcCode == '1') {
+            console.log("当前用户 " + data.current_user + " 已下线")
         }
     }
 }
@@ -141,7 +161,29 @@ function download_game_data () {
 
 
 
+// 客户端请求服务器端清空游戏存档，funcCode == 10
+function clear_server_game_content () {
+    let data = {
+        'funcCode': '10',
+    }
+    socket.send(JSON.stringify(data))
+    console.log(JSON.stringify(data))
+
+    // 这个地方或许应该加一个弹窗 alert
+
+    socket.onmessage = function(evt) {
+        let data = JSON.parse(evt.data)
+        if (data.funcCode == '0') {
+            console.log("清空失败，请重试")
+        } else if (data.funcCode == '1') {
+            console.log("当前用户 " + data.current_user + " 的云存档已经清空")
+        }
+    }
+}
+
+
+
 // 在集成到 HTML 之前，这就是测试模块
-socket.onopen = function() {
+socket.onopen = function () {
     // login("newton", '123456')
 }

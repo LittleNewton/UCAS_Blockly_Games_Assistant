@@ -168,6 +168,15 @@ function SQL_get_game_info (username, callback) {
 
 
 
+function SQL_delete_user_game_content (username, callback) {
+    let sql_delete_user_game_content = 'DELETE FROM GAME where name = \'' + username + '\';'
+    db.all(sql_delete_user_game_content)
+    console.log('DB: 用户 ' + username + ' 的游戏存档已删除')
+    callback ('DELETE_SUCCESS')
+}
+
+
+
 // ws (webSocket) 代表一个客户端，每个连接进来的客户端都有一个 ws
 webSocketServer.on('connection', function connection(ws) {
     // ROUTINE: 连接建立
@@ -237,6 +246,12 @@ webSocketServer.on('connection', function connection(ws) {
                     }
                 })
             }
+        } else if ( data.funcCode == '6'){
+            console.log("SERVER: 当前用户请求下线")
+            isLogin = false
+
+            let data_respond = {'funcCode': '1', 'current_user': current_user}
+            ws.send(JSON.stringify(data_respond))
         } else if (data.funcCode == '8') {
             // 如果有用户要发送游戏数据
             console.log("SERVER: 有用户要发送游戏数据")
@@ -261,6 +276,20 @@ webSocketServer.on('connection', function connection(ws) {
             SQL_get_game_info (current_user, function (games) {
                 let data_respond = {'funcCode': '1', games}
                 ws.send(JSON.stringify(data_respond))
+            })
+        } else if (data.funcCode == '10') {
+            console.log("SERVER: 当前用户请求下线")
+
+            // 从数据库里删除所有用户名为 USER 的游戏数据
+            SQL_delete_user_game_content (current_user, function (res) {
+                if (res == 'DELETE_SUCCESS') {
+                    let data_respond = {'funcCode': '1'}
+                    ws.send(JSON.stringify(data_respond))
+                } else {
+                    let data_respond = {'funcCode': '0'}
+                    ws.send(JSON.stringify(data_respond))
+                    console.log('SERVER: 游戏进度清空失败')
+                }
             })
         } else {
             let data_respond = {'funcCode': '0', 'error': 'funcCode 无法解析'}
