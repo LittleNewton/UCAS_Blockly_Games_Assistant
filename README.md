@@ -45,11 +45,27 @@ node websocket.js
 
 ![c](images/upload-unpacked-extension.png)
 
+目前只实现了核心的函数，所以只允许在 Chrome 系浏览器的 Console 里直接调用函数以使用功能。
+
 ## 2. 使用方法
 
 ### 2.1 初阶使用
 
-目前只实现了核心的函数，所以只允许在 Chrome 系浏览器的控制台里直接调用函数以使用功能。
+首先启动服务端程序：
+
+``` zsh
+node websocket.js
+```
+
+然后按照安装指南，在 Chrome 系浏览器里安装插件。之后打开 www.blockly.games 网站，并打开 Console 控制台。
+
+1. 控制台里输入命令 `register('Lisa', '12345678')`，即可注册 Lisa 用户，注册成功自动登录，注册失败也会有说明。
+2. 控制台里输入 `login('Lisa', 'xxx')`，系统提示当前用户 Lisa 已登录。
+3. 控制台里输入 `login('newton', '7789')`，系统提示当前用户切换为 newton. 不过 newton 和 Lisa 会共享当前的 LocalStorage.
+4. 控制台里输入 `download_game_data()`，浏览器自动请求当前用户的云端数据，并于本地数据合并。如果云端存档与本地通关方案不同，本地会被覆盖。
+5. 控制台里输入 `upload_game_data()`，浏览器自动上传本地数据到云端，与拉取云端数据相反，如果本地与云端不一致，本地数据会被保存，云端不会被覆盖。
+
+![DB](Images/sqlite3_game_data.png)
 
 ### 2.2 后续使用
 

@@ -186,7 +186,7 @@ webSocketServer.on('connection', function connection(ws) {
         // TO DO : 以下所有的函数，都应该用 try 语句来写！否则服务端容易崩溃
 
         // 如果发起连接时，funcCode 不是登录、注册，且当前没有登录，则驳回所有请求
-        if (isLogin == false && (data.funcCode != '4' && data.funcCode != '5')) {
+        if (!isLogin && (data.funcCode != '4' && data.funcCode != '5')) {
             console.log("SERVER: 该发起连接的用户未登录，操作非法")
             let data_respond = {'funcCode': 0}
             ws.send(JSON.stringify(data_respond))
@@ -218,9 +218,9 @@ webSocketServer.on('connection', function connection(ws) {
             let username = data.username
             let password = data.password
 
-            if (isLogin) {
+            if (isLogin && current_user == username) {
                 console.log('SERVER: 该用户已登录')
-                let data_respond = {'funcCode': '1'}
+                let data_respond = {'funcCode': '1', 'current_user': current_user + ' 已登录'}
                 ws.send(JSON.stringify(data_respond))
             } else if (username_valid(username)) {
                 SQL_query_user_info(username, function (passwd_hash_in_DB) {
