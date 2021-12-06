@@ -65,7 +65,7 @@ node websocket.js
 4. 控制台里输入 `download_game_data()`，浏览器自动请求当前用户的云端数据，并于本地数据合并。如果云端存档与本地通关方案不同，本地会被覆盖。
 5. 控制台里输入 `upload_game_data()`，浏览器自动上传本地数据到云端，与拉取云端数据相反，如果本地与云端不一致，本地数据会被保存，云端不会被覆盖。
 
-![DB](Images/sqlite3_game_data.png)
+![DB](images/sqlite3_game_data.png)
 
 ### 2.2 后续使用
 
