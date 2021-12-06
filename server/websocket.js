@@ -11,29 +11,41 @@
 /*
  * 引入 node.js 组件
  */
-var express = require('express');
-var sqlite3 = require('sqlite3');
-var fs      = require('fs');
-var WebSocketServer = require('ws').Server
-
-
-
-/* 
- * 注册|打开 数据库
- */
-var file_db_user = 'blockly_gamers.db';
-var exists = fs.existsSync(file_db_user);
-var db = new sqlite3.Database(file_db_user);
+const express = require('express');
+const sqlite3 = require('sqlite3');
+const fs      = require('fs');
+const WebSocketServer = require('ws').Server
 
 
 
 /*
- * 初始化两个数据库
+ * 注册 webSocket 服务器
+ */
+const app = express()
+app.use(express.static(__dirname))
+app.listen(3000)
+const webSocketServer = new WebSocketServer({ port: 9999 })
+
+
+
+/* 
+ * 注册 or 打开 数据库
+ */
+const file_db_user = 'blockly_gamers.db';
+const exists = fs.existsSync(file_db_user);
+const db = new sqlite3.Database(file_db_user);
+
+
+
+/*
+ * 初始化数据库
  */
 function initDB () {
-    var sql_create_table_user = db.prepare("CREATE TABLE IF NOT EXISTS USER(name varchar(32) PRIMARY KEY, password_hash varchar(16) NOT NULL)");
+    // （如果不存在则创建）用户表：用户名、密码哈希
+    const sql_create_table_user = db.prepare("CREATE TABLE IF NOT EXISTS USER(name varchar(32) PRIMARY KEY, password_hash varchar(16) NOT NULL)");
     sql_create_table_user.run();
-    var sql_create_table_game = db.prepare("CREATE TABLE IF NOT EXISTS GAME(name varchar(32), game varchar(32), datetime text, content text, PRIMARY KEY (name, game, datetime))")
+    // （如果不存在则创建）游戏表：
+    const sql_create_table_game = db.prepare("CREATE TABLE IF NOT EXISTS GAME(name varchar(32), game varchar(32), datetime text, content text, PRIMARY KEY (name, game, datetime))")
     sql_create_table_game.run();
 }
 initDB();
@@ -42,38 +54,28 @@ initDB();
 
 /*
  * 检查用户发送过来的 username 是否合法
- * (1) 形式合法
- * (2) 与数据库中的已有数据不冲突
+ * 形式合法?
+ *      true:   合法
+ *      false:  不合法
  */
-function SQL_user_exist(username) {
+function username_valid(username) {
 
     // STEP 1: 检查 username 长度是否合法
     if (username.length > 32 || username.length < 3) {
-        console.log("用户名过长或过短");
+        console.log("username 不合法：用户名过长或过短");
         // TO DO: 在 HTML 里把这部分的反馈写上去，如 alert('用户名非法')
         return false;
     }
 
     // STEP 2: 检查 username 样式是否合法
-    var re = new RegExp("^[a-zA-Z_][0-9a-zA-Z@\.]*$");
+    const re = new RegExp("^[a-zA-Z_][0-9a-zA-Z@\.]*$");
     if(re.exec(username) == null) {
-        console.log("用户名形式不合法");
+        console.log("username 不合法：用户名形式不正确");
         return false;
     }
 
-    // STEP 3: 检查数据库中是否已经包含这个 username
-    var sql_check_username = "SELECT name FROM USER WHERE name = " + username;
-    db.run(sql_check_username, function (res, err) {
-        if (!err) {
-            // 没有查到才是我们期望的！
-            console.log("错误码：", err);
-            console.log("Sqlite3: 数据库未检测到用户名冲突。");
-            return true;
-        } else {
-            console.log("返回值：", res);
-            return false;
-        }
-    });
+    console.log("经检查用户名 " + username + " 形式合法")
+    return true
 }
 
 
@@ -86,26 +88,37 @@ function SQL_user_exist(username) {
  *          false   :: 失败
  */
 function SQL_insert_user(username, password) {
-    let sql_insert_user = 'INSERT INTO USER VALUES (' + username + ',' + password + ')';
-    db.run(sql_insert_user, function(res, err) {
-        if (!err) {
+    let sql_insert_user = 'INSERT INTO USER VALUES (\'' + username + '\',\'' + password + '\');';
+    db.run(sql_insert_user, [], function (res, err) {
+        if (err) {
             console.log("插入 username 不成功。");
-            console.log("错误码：", err);
+            console.log(err);
         } else {
-            console.log("返回值：", res);
+            console.log(res);
         }
     });
     console.log(sql_insert_user);
 }
 
 
+
 /*
- * 注册 webSocket 服务器
+ * 根据用户名查询是否存在该用户
+ *  (1) 存在，则返回用户的密码
+ *  (2) 不存在，则返回 err
  */
-var app = express()
-app.use(express.static(__dirname))
-app.listen(3000)
-var webSocketServer = new WebSocketServer({ port: 9999 })
+function SQL_query_user_info (username, callback) {
+    let sql_query_user = "SELECT * FROM USER WHERE name = \'" + username + '\';';
+    db.all(sql_query_user, [], function(err, rows) {
+        if (err) {
+            console.log(err);
+        } else if (rows.length != 0){
+            callback(rows[0].name, rows[0].password_hash)
+        } else {
+            console.log('SQL_query_user_info: 查无此人');
+        }
+    })
+}
 
 
 
@@ -124,11 +137,12 @@ webSocketServer.on('connection', function connection(ws) {
         // TO DO : 以下所有的函数，都应该用 try 语句来写！否则服务端容易崩溃
 
         // 如果发起连接时，funcCode 不是登录、注册，且当前没有登录，则驳回所有请求
-        if (isLogin == false && (data.funcCode != 4 || data.funcCode != 5)) {
+        if (isLogin == false && (data.funcCode != '4' && data.funcCode != '5')) {
             console.log("该发起连接的用户未登录，操作非法");
             let data_respond = {'funcCode': 0};
             ws.send(JSON.stringify(data_respond));
         }
+
 
 
         // 如果有人要注册
@@ -137,9 +151,10 @@ webSocketServer.on('connection', function connection(ws) {
             let username = data.username;
             let password = data.password;
 
-            if (SQL_user_exist(username)) {
-                console.log("Server: 允许注册用户");
+            if (username_valid(username)) {
+                console.log("Server: 尝试注册用户");
                 SQL_insert_user(username, password);
+
                 let data_respond = {'funcCode': 1};
                 ws.send(JSON.stringify(data_respond));
             }
@@ -150,6 +165,15 @@ webSocketServer.on('connection', function connection(ws) {
         // 如果有用户要登录
         if (data.funcCode == 5) {
             console.log("有用户要登录~");
+            let username = data.username;
+            let password = data.password;
+
+            if (username_valid(username)) {
+                SQL_query_user_info(username, function (res) {
+                    let tmp_name = res
+                    console.log(tmp_name)
+                })
+            }
             if (data.username == 'newton' && data.password == '123456') {
                 let data_respond = {'funcCode': 1}
                 ws.send(JSON.stringify(data_respond));
@@ -191,6 +215,7 @@ webSocketServer.on('connection', function connection(ws) {
 
 
 
+// 测试代码
 const games = [
     {'gameName':'maze1', 'xml':'<xml xmlns="https://developers.google.com/blockly/xml"><block type="maze_forever"><statement name="DO"><block type="maze_moveForward"></block></statement></block></xml>'},
     {'gameName':'maze2', 'xml':'<xml xmlns="https://developers.google.com/blockly/xml"><block type="maze_moveForward"><next><block type="maze_turn"><field name="DIR">turnLeft</field><next><block type="maze_moveForward"><next><block type="maze_turn"><field name="DIR">turnRight</field><next><block type="maze_moveForward"></block></next></block></next></block></next></block></next></block></xml>'},
