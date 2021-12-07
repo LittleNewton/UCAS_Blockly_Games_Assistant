@@ -21,17 +21,6 @@ sudo apt install npm
 ```
 
 之后，课通过以下命令配置 node.js 的运行环境：
-
-``` zsh
-cd server
-npm install fs
-npm install express
-npm install sqlite3
-npm install ws
-npm install mocha --save-dev 
-```
-
-或者： 直接运行
 ``` zsh
 cd server
 npm install
@@ -90,7 +79,7 @@ node websocket.js
 
 ### 2.2 后续使用
 
-后续将继续添加 WebUI，方便普通用户使用。
+使用 WebUI，方便普通用户使用。
 
 ## 3. 开发者教程
 
