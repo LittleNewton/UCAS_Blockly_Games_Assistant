@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
+  "description": "国科大blockly games 编程助手",
   "main": "websocket.js",
   "dependencies": {
     "express": "^4.17.1",
@@ -17,6 +17,6 @@
     "test": "mocha",
     "start": "node websocket.js"
   },
-  "author": "",
+  "author": "liu peng, yan yue",
   "license": "ISC"
 }
