@@ -12,6 +12,14 @@ sudo yum install nodejs
 sudo yum install npm
 ```
 
+或者： 在 Ubuntu 20.04 x86-64 系统上，以 `sudo` 用户组内的普通用户身份执行以下代码：
+
+``` zsh
+sudo apt update
+sudo apt install nodejs
+sudo apt install npm
+```
+
 之后，课通过以下命令配置 node.js 的运行环境：
 
 ``` zsh
@@ -19,7 +27,17 @@ cd server
 npm install fs
 npm install express
 npm install sqlite3
+npm install ws
+npm install mocha --save-dev 
 ```
+
+或者： 直接运行
+``` zsh
+cd server
+npm install
+```
+会根据package.json 中的依赖自动安装所有模块
+
 
 最后，通过运行以下命令即可开启 server 端服务进程：
 
