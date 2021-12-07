@@ -22,3 +22,26 @@ describe("valid username", function(){
         assert.equal(out, true)
     })
 })
+
+
+sqlite3 = require('sqlite3')
+describe("test db", function(){
+    db = new sqlite3.Database('test.db')
+
+    it("should create db success", function(){
+        var initDB = websocket.__get__('initDB')
+        var out = initDB(db)
+        assert.equal(out, true)
+    })
+
+    // var callback = function(word){ console.log(word) }
+    // it("should insert success", function(){
+    //     var SQL_insert_user = websocket.__get__('SQL_insert_user')
+    //     var out = SQL_insert_user('yanyue', '12345', callback)
+    //     assert.equal(out, true)
+    // })
+
+    
+    // let sql_insert_user = 'INSERT INTO USER VALUES (\'' + 'username' + '\',\'' + 'password' + '\');'
+    // db.run(sql_insert_user)
+})

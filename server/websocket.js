@@ -40,15 +40,16 @@ const db = new sqlite3.Database(file_db_user)
 /*
  * 初始化数据库
  */
-function initDB () {
+function initDB (dbIn) {
     // （如果不存在则创建）用户表：用户名、密码哈希
-    const sql_create_table_user = db.prepare("CREATE TABLE IF NOT EXISTS USER(name varchar(32) PRIMARY KEY, password_hash varchar(16) NOT NULL)")
+    const sql_create_table_user = dbIn.prepare("CREATE TABLE IF NOT EXISTS USER(name varchar(32) PRIMARY KEY, password_hash varchar(16) NOT NULL)")
     sql_create_table_user.run()
     // （如果不存在则创建）游戏表：
-    const sql_create_table_game = db.prepare("CREATE TABLE IF NOT EXISTS GAME(name varchar(32), game varchar(32), content text, PRIMARY KEY (name, game))")
+    const sql_create_table_game = dbIn.prepare("CREATE TABLE IF NOT EXISTS GAME(name varchar(32), game varchar(32), content text, PRIMARY KEY (name, game))")
     sql_create_table_game.run()
+    return true
 }
-initDB()
+initDB(db)
 
 
 
