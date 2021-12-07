@@ -23,6 +23,25 @@ $('#invoke_background_js').click(e => {
 	bg.testBackground();
 });
 
+// 欢迎
+$('#welcome_js').click(e => {
+	var bg = hello();
+});
+
+// 注册
+$('#register_js').click(e => {
+	var username = prompt('请输入用户名');
+	var password = prompt('请输入密码');
+	register(username, password);
+});
+
+// 登陆
+$('#login_js').click(e => {
+	var username = prompt('请输入用户名');
+	var password = prompt('请输入密码');
+	login(username, password);
+});
+
 // 获取后台页标题
 $('#get_background_title').click(e => {
 	var bg = chrome.extension.getBackgroundPage();
