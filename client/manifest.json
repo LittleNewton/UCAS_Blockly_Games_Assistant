@@ -65,9 +65,9 @@
 
 
     // 插件主页
-    "homepage_url": "https://www.baidu.com",
+    "homepage_url": "https://www.baidu.com"
 
 
     // 默认语言
-    "dfault_locale": "zh_CN"
+    // "dfault_locale": "zh_CN"
 }

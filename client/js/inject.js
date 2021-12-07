@@ -11,7 +11,9 @@
 /*
  * Let's get started
  */
-
+function hello(){
+    alert('让我们开始编程吧！')
+}
 console.log("让我们开始！ from inject.js")
 
 
@@ -40,11 +42,15 @@ function register (username, password) {
         let data = JSON.parse(evt.data)
         if (data.funcCode == '0') {
             console.log("注册失败")
+            alert("注册失败")
         } else if (data.funcCode == '1') {
             console.log("注册成功")
             console.log("当前用户：" + data.current_user)
+            alert("注册成功")
+            alert("当前用户：" + data.current_user)
         } else {
             console.log("服务器无响应")
+            alert("服务器无响应")
         }
     }
 }
@@ -68,9 +74,13 @@ function login (username, password) {
         if (data.funcCode == '0') {
             console.log("登录失败")
             console.log(data.error)
+            alert("登录失败")
+            alert(data.error)
         } else if (data.funcCode == '1') {
             console.log("登录成功")
             console.log("当前用户：" + data.current_user)
+            alert("登录成功")
+            alert("当前用户：" + data.current_user)
         }
     }
 }
