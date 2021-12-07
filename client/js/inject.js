@@ -154,17 +154,21 @@ function download_game_data () {
     socket.onmessage = function (evt) {
         let response = JSON.parse(evt.data)
         if (response.funcCode == 0) {
-            alert("CLIENT: 请求拉取游戏进度失败，云端没有存档")
-        } else if (response.funcCode == 1) {
+            alert.log("CLIENT: 请求拉取游戏进度失败，云端没有存档")
+        } else if (response.funcCode == '1') {
             alert("CLIENT: 请求拉取云端游戏数据成功")
+
             let len = response.games.length
             for (let i = 0; i < len; i++) {
                 window.localStorage.setItem(response.games[i].gameName, response.games[i].xml)
                 console.log(response.games[i].gameName,response.games[i].xml)
             }
-            alert("浏览器 localStorage 已填写完成！")
+            alert("CLIENT: 游戏存档已成功储存至本地")
+        } else if (response.funcCode == '2') {
+            alert("CLIENT: 用户未登录")
         } else {
-            alert("因为其它原因失败，client funcCode == 9")
+            alert("CLIENT: 发生未知错误")
+
         }
     }
 }

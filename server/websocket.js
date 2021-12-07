@@ -198,104 +198,130 @@ webSocketServer.on('connection', function connection(ws) {
         // 如果发起连接时，funcCode 不是登录、注册，且当前没有登录，则驳回所有请求
         if (!isLogin && (data.funcCode != '4' && data.funcCode != '5')) {
             console.log("SERVER: 该发起连接的用户未登录，操作非法")
-            let data_respond = {'funcCode': 0}
+            let data_respond = {'funcCode': '2'}
             ws.send(JSON.stringify(data_respond))
-        } else if (data.funcCode == '4') {
-            // 如果有人要注册
-            console.log('有新用户想要注册')
-            let username = data.username
-            let password = data.password
+        } else {
 
-            if (username_valid(username)) {
-                console.log("SERVER: 尝试注册用户")
-                SQL_insert_user(username, password, function (resp) {
-                    if (resp == 'USERNAME_INVALID') {
+            switch (data.funcCode) {
+
+                // 有游客要注册
+                case  '4': {
+                    console.log('有新用户想要注册')
+                    let username = data.username
+                    let password = data.password
+
+                    if (username_valid(username)) {
+                        console.log("SERVER: 尝试注册用户")
+                        SQL_insert_user(username, password, function (resp) {
+                            if (resp == 'USERNAME_INVALID') {
+                                let data_respond = {'funcCode': '0'}
+                                ws.send(JSON.stringify(data_respond))
+                                console.log("SERVER: 该用户名已被注册")
+                            } else if (resp == 'REG_SUCCESS') {
+                                isLogin = true
+                                current_user = username
+                                let data_respond = {'funcCode': '1', 'current_user': current_user}
+                                ws.send(JSON.stringify(data_respond))
+                                console.log("SERVER: 用户已注册成功，并同时为该用户登录")
+                            }
+                        })
+                    }
+                    break
+                }
+
+                // 有用户要登录
+                case '5': {
+                    console.log("SERVER: 有用户要登录~")
+                    let username = data.username
+                    let password = data.password
+
+                    if (isLogin && current_user == username) {
+                        console.log('SERVER: 该用户已登录')
+                        let data_respond = {'funcCode': '1', 'current_user': current_user + ' 已登录'}
+                        ws.send(JSON.stringify(data_respond))
+                    } else if (username_valid(username)) {
+                        SQL_query_user_info(username, function (passwd_hash_in_DB) {
+                            if (password != passwd_hash_in_DB) {
+                                console.log('SERVER: 用户输入的密码错误！')
+                                let data_respond = {'funcCode': '0', 'error': '用户名或密码错误'}
+                                ws.send(JSON.stringify(data_respond))
+                            } else {
+                                isLogin = true
+                                current_user = username
+                                let data_respond = {'funcCode': '1', 'current_user': current_user}
+                                ws.send(JSON.stringify(data_respond))
+                                console.log('SERVER: 用户密码正确，允许登录！')
+                            }
+                        })
+                    }
+                    break
+                }
+
+                // 当前用户请求下线
+                case '6': {
+                    console.log("SERVER: 当前用户请求下线")
+                    isLogin = false
+
+                    let data_respond = {'funcCode': '1', 'current_user': current_user}
+                    ws.send(JSON.stringify(data_respond))
+                    break
+                }
+
+                // 当前用户要发送游戏数据存档
+                case '8': {
+                    console.log("SERVER: 有用户要发送游戏数据")
+                    let game_data = data.games
+
+                    // 判断 data.games 字段的长度，防止有人乱发东西，必要的时候加 SQL 注入防护
+                    if (game_data.length == 0 || Object.keys(game_data[0]).length != 2) {
+                        console.log('SERVER: 游戏存档非法，已拒绝')
                         let data_respond = {'funcCode': '0'}
                         ws.send(JSON.stringify(data_respond))
-                        console.log("SERVER: 该用户名已被注册")
-                    } else if (resp == 'REG_SUCCESS') {
-                        isLogin = true
-                        current_user = username
-                        let data_respond = {'funcCode': '1', 'current_user': current_user}
-                        ws.send(JSON.stringify(data_respond))
-                        console.log("SERVER: 用户已注册成功，并同时为该用户登录")
-                    }
-                })
-            }
-        } else if (data.funcCode == '5') {
-            // 如果有用户要登录
-            console.log("SERVER: 有用户要登录~")
-            let username = data.username
-            let password = data.password
-
-            if (isLogin && current_user == username) {
-                console.log('SERVER: 该用户已登录')
-                let data_respond = {'funcCode': '1', 'current_user': current_user + ' 已登录'}
-                ws.send(JSON.stringify(data_respond))
-            } else if (username_valid(username)) {
-                SQL_query_user_info(username, function (passwd_hash_in_DB) {
-                    if (password != passwd_hash_in_DB) {
-                        console.log('SERVER: 用户输入的密码错误！')
-                        let data_respond = {'funcCode': '0', 'error': '用户名或密码错误'}
-                        ws.send(JSON.stringify(data_respond))
                     } else {
-                        isLogin = true
-                        current_user = username
-                        let data_respond = {'funcCode': '1', 'current_user': current_user}
-                        ws.send(JSON.stringify(data_respond))
-                        console.log('SERVER: 用户密码正确，允许登录！')
+                        SQL_insert_game_info(current_user, game_data, function () {
+                            console.log("SERVER: 写入游戏数据")
+                            let data_respond = {'funcCode': '1'}
+                            ws.send(JSON.stringify(data_respond))
+                        })
                     }
-                })
-            }
-        } else if ( data.funcCode == '6'){
-            console.log("SERVER: 当前用户请求下线")
-            isLogin = false
-
-            let data_respond = {'funcCode': '1', 'current_user': current_user}
-            ws.send(JSON.stringify(data_respond))
-        } else if (data.funcCode == '8') {
-            // 如果有用户要发送游戏数据
-            console.log("SERVER: 有用户要发送游戏数据")
-            let game_data = data.games
-
-            // 判断 data.games 字段的长度，防止有人乱发东西，必要的时候加 SQL 注入防护
-            if (game_data.length == 0 || Object.keys(game_data[0]).length != 2) {
-                console.log('SERVER: 游戏存档非法，已拒绝')
-                let data_respond = {'funcCode': '0'}
-                ws.send(JSON.stringify(data_respond))
-            } else {
-                SQL_insert_game_info (current_user, game_data, function () {
-                    console.log("SERVER: 写入游戏数据")
-                })
-
-                let data_respond = {'funcCode': '1'}
-                ws.send(JSON.stringify(data_respond))
-            }
-        } else if (data.funcCode == '9') {
-            // 如果用户要下载云端的游戏数据
-            console.log("SERVER: 有用户请求下载云端游戏数据")
-            SQL_get_game_info (current_user, function (games) {
-                let data_respond = {'funcCode': '1', games}
-                ws.send(JSON.stringify(data_respond))
-            })
-        } else if (data.funcCode == '10') {
-            console.log("SERVER: 当前用户请求下线")
-
-            // 从数据库里删除所有用户名为 USER 的游戏数据
-            SQL_delete_user_game_content (current_user, function (res) {
-                if (res == 'DELETE_SUCCESS') {
-                    let data_respond = {'funcCode': '1'}
-                    ws.send(JSON.stringify(data_respond))
-                } else {
-                    let data_respond = {'funcCode': '0'}
-                    ws.send(JSON.stringify(data_respond))
-                    console.log('SERVER: 游戏进度清空失败')
+                    break
                 }
-            })
-        } else {
-            let data_respond = {'funcCode': '0', 'error': 'funcCode 无法解析'}
-            ws.send(JSON.stringify(data_respond))
-            console.log('SERVER: 未识别的 funcCode')
+
+                // 当前用户请求下载云端备份
+                case '9': {
+                    console.log("SERVER: 有用户请求下载云端游戏数据")
+                    SQL_get_game_info(current_user, function (games) {
+                        let data_respond = {'funcCode': '1', games}
+                        ws.send(JSON.stringify(data_respond))
+                    })
+                    break
+                }
+
+                // 当前用户请求清空服务器保存的游戏进度
+                case '10': {
+                    console.log("SERVER: 当前用户请求清空服务器保存的游戏进度")
+
+                    // 从数据库里删除所有用户名为 USER 的游戏数据
+                    SQL_delete_user_game_content(current_user, function (res) {
+                        if (res == 'DELETE_SUCCESS') {
+                            let data_respond = {'funcCode': '1'}
+                            ws.send(JSON.stringify(data_respond))
+                        } else {
+                            let data_respond = {'funcCode': '0'}
+                            ws.send(JSON.stringify(data_respond))
+                            console.log('SERVER: 游戏进度清空失败')
+                        }
+                    })
+                    break
+                }
+
+                // 默认
+                default: {
+                    let data_respond = {'funcCode': '0', 'error': 'funcCode 无法解析'}
+                    ws.send(JSON.stringify(data_respond))
+                    console.log('SERVER: 未识别的 funcCode')
+                }
+            }
         }
     })
 })
