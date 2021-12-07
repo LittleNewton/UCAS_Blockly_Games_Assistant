@@ -39,10 +39,13 @@ npm install
 会根据package.json 中的依赖自动安装所有模块
 
 
+
 最后，通过运行以下命令即可开启 server 端服务进程：
 
 ``` zsh
 node websocket.js
+npm run start   # 和上一条语句同一个作用
+npm run test    # 运行所有测试
 ```
 
 ### 1.2 客户端
