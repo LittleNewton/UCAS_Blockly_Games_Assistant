@@ -145,16 +145,18 @@ function download_game_data () {
         let response = JSON.parse(evt.data)
         if (response.funcCode == 0) {
             console.log("CLIENT: 请求拉取游戏进度失败，云端没有存档")
-        } else if (response.funcCode == 1) {
+        } else if (response.funcCode == '1') {
             console.log("CLIENT: 请求拉取云端游戏数据成功")
             let len = response.games.length
             for (let i = 0; i < len; i++) {
                 window.localStorage.setItem(response.games[i].gameName, response.games[i].xml)
                 console.log(response.games[i].gameName,response.games[i].xml)
             }
-            console.log("浏览器 localStorage 已填写完成！")
+            console.log("CLIENT: 游戏存档已成功储存至本地")
+        } else if (response.funcCode == '2') {
+            console.log("CLIENT: 用户未登录")
         } else {
-            console.log("因为其它原因失败，client funcCode == 9")
+            console.log("CLIENT: 发生未知错误")
         }
     }
 }
