@@ -42,6 +42,16 @@ $('#login_js').click(e => {
 	login(username, password);
 });
 
+// 下载数据
+$('#download_js').click(e => {
+	download_game_data();
+});
+
+// 上传数据
+$('#upload_js').click(e => {
+	upload_game_data();
+});
+
 // 获取后台页标题
 $('#get_background_title').click(e => {
 	var bg = chrome.extension.getBackgroundPage();

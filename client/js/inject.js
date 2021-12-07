@@ -126,11 +126,11 @@ function upload_game_data () {
     socket.onmessage = function(evt) {
         let response = JSON.parse(evt.data)
         if (response.funcCode == 0) {
-            console.log("发送本地游戏数据失败")
+            alert("发送本地游戏数据失败")
         } else if (response.funcCode == 1) {
-            console.log("发送本地游戏数据成功")
+            alert("发送本地游戏数据成功")
         } else {
-            console.log("因为其它原因发送失败")
+            alert("因为其它原因发送失败")
         }
     }
 }
@@ -145,7 +145,7 @@ function download_game_data () {
 
     socket.send(JSON.stringify(data))
     // TO BE DELETED check 输出
-    console.log('拉取请求已提交')
+    alert('拉取请求已提交')
 
     // 收取服务器的反馈
     // (1) 如果服务器返回的 funcCode == 0，即错误返回，就发一个警告
@@ -154,17 +154,17 @@ function download_game_data () {
     socket.onmessage = function (evt) {
         let response = JSON.parse(evt.data)
         if (response.funcCode == 0) {
-            console.log("CLIENT: 请求拉取游戏进度失败，云端没有存档")
+            alert("CLIENT: 请求拉取游戏进度失败，云端没有存档")
         } else if (response.funcCode == 1) {
-            console.log("CLIENT: 请求拉取云端游戏数据成功")
+            alert("CLIENT: 请求拉取云端游戏数据成功")
             let len = response.games.length
             for (let i = 0; i < len; i++) {
                 window.localStorage.setItem(response.games[i].gameName, response.games[i].xml)
                 console.log(response.games[i].gameName,response.games[i].xml)
             }
-            console.log("浏览器 localStorage 已填写完成！")
+            alert("浏览器 localStorage 已填写完成！")
         } else {
-            console.log("因为其它原因失败，client funcCode == 9")
+            alert("因为其它原因失败，client funcCode == 9")
         }
     }
 }
