@@ -21,13 +21,13 @@ sudo apt install npm
 ```
 
 之后，课通过以下命令配置 node.js 的运行环境：
+
 ``` zsh
 cd server
 npm install
 ```
+
 会根据package.json 中的依赖自动安装所有模块
-
-
 
 最后，通过运行以下命令即可开启 server 端服务进程：
 
@@ -89,4 +89,7 @@ Client 端需要掌握基本的 JavaScript ES6 编程技能。
 
 ## 4. 联系我们
 
-主要开发者：刘鹏，email: liupeng19[at]mails.ucas.edu.cn
+主要开发者：
+
+- 刘鹏，email: liupeng19[at]mails.ucas.edu.cn
+- 晏悦，email: yanyue171[at]mails.ucas.ac.cn
