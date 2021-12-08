@@ -14,6 +14,7 @@
 const express = require('express')
 const sqlite3 = require('sqlite3')
 const fs      = require('fs')
+const crypto  = require('crypto')
 const WebSocketServer = require('ws').Server
 
 
@@ -42,7 +43,7 @@ const db = new sqlite3.Database(file_db_user)
  */
 function initDB (dbIn) {
     // （如果不存在则创建）用户表：用户名、密码哈希
-    const sql_create_table_user = dbIn.prepare("CREATE TABLE IF NOT EXISTS USER(name varchar(32) PRIMARY KEY, password_hash varchar(16) NOT NULL)")
+    const sql_create_table_user = dbIn.prepare("CREATE TABLE IF NOT EXISTS USER(name varchar(32) PRIMARY KEY, password_hash text NOT NULL, salt text NOT NULL)")
     sql_create_table_user.run()
     // （如果不存在则创建）游戏表：
     const sql_create_table_game = dbIn.prepare("CREATE TABLE IF NOT EXISTS GAME(name varchar(32), game varchar(32), content text, PRIMARY KEY (name, game))")
@@ -95,7 +96,12 @@ function username_valid(username) {
  *          false   :: 失败
  */
 function SQL_insert_user(username, password, callback) {
-    let sql_insert_user = 'INSERT INTO USER VALUES (\'' + username + '\',\'' + password + '\');'
+
+    // password 做哈希加盐
+    const salt = crypto.randomBytes(128).toString('base64')
+    const password_hash = crypto.pbkdf2Sync(password, salt, 10000, 512, 'sha512').toString('base64')
+
+    let sql_insert_user = 'INSERT INTO USER VALUES (\'' + username + '\', \'' + password_hash + '\', \'' + salt + '\');'
     db.run(sql_insert_user, [], function (res, err) {
         // errno 19: 用户名冲突
         if (res == null) {
@@ -117,14 +123,16 @@ function SQL_insert_user(username, password, callback) {
  *  (2) 不存在，则返回 err
  */
 function SQL_query_user_info (username, callback) {
-    let sql_query_user = 'SELECT * FROM USER WHERE name = \'' + username + '\';'
+    let sql_query_user = 'SELECT password_hash, salt FROM USER WHERE name = \'' + username + '\';'
     db.all(sql_query_user, [], function(err, rows) {
         if (err) {
             console.log(err)
+            return
         } else if (rows.length != 0){
-            callback(rows[0].password_hash)
+            callback(rows[0].password_hash, rows[0].salt)
         } else {
             console.log('DB: 数据库中查无此人')
+            return
         }
     })
 }
@@ -240,11 +248,13 @@ webSocketServer.on('connection', function connection(ws) {
                         let data_respond = {'funcCode': '1', 'current_user': current_user + ' 已登录'}
                         ws.send(JSON.stringify(data_respond))
                     } else if (username_valid(username)) {
-                        SQL_query_user_info(username, function (passwd_hash_in_DB) {
-                            if (password != passwd_hash_in_DB) {
+                        SQL_query_user_info(username, function (passwd_hash_in_DB, salt) {
+                            if (crypto.pbkdf2Sync(password, salt, 10000, 512, 'sha512').toString('base64') != passwd_hash_in_DB) {
                                 console.log('SERVER: 用户输入的密码错误！')
                                 let data_respond = {'funcCode': '0', 'error': '用户名或密码错误'}
                                 ws.send(JSON.stringify(data_respond))
+                                ws.close()
+                                console.log('WebSocket 连接已关闭')
                             } else {
                                 isLogin = true
                                 current_user = username
@@ -264,6 +274,8 @@ webSocketServer.on('connection', function connection(ws) {
 
                     let data_respond = {'funcCode': '1', 'current_user': current_user}
                     ws.send(JSON.stringify(data_respond))
+                    ws.close();
+                    console.log('WebSocket 连接已关闭')
                     break
                 }
 
@@ -319,7 +331,9 @@ webSocketServer.on('connection', function connection(ws) {
                 default: {
                     let data_respond = {'funcCode': '0', 'error': 'funcCode 无法解析'}
                     ws.send(JSON.stringify(data_respond))
-                    console.log('SERVER: 未识别的 funcCode')
+                    ws.close()
+                    console.log('WebSocket 连接已关闭')
+                    console.log('SERVER: 未识别的 funcCode，连接已关闭')
                 }
             }
         }
