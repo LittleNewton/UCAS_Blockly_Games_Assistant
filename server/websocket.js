@@ -11,11 +11,11 @@
 /*
  * 引入 node.js 组件
  */
-const express = require('express')
-const sqlite3 = require('sqlite3')
-const fs      = require('fs')
-const crypto  = require('crypto')
-const WebSocketServer = require('ws').Server
+const express           = require('express')
+const sqlite3           = require('sqlite3')
+const fs                = require('fs')
+const crypto            = require('crypto')
+const WebSocketServer   = require('ws').Server
 
 
 
@@ -33,7 +33,6 @@ const webSocketServer = new WebSocketServer({ port: 9999 })
  * 注册 or 打开 数据库
  */
 const file_db_user = 'blockly_gamers.db'
-const exists = fs.existsSync(file_db_user)
 const db = new sqlite3.Database(file_db_user)
 
 
