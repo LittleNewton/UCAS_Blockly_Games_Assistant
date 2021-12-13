@@ -15,7 +15,7 @@
     "rewire": "^5.0.0"
   },
   "scripts": {
-    "test": "mocha",
+    "test": "mocha --exit",
     "start": "node websocket.js"
   },
   "author": "liu peng, yan yue",
