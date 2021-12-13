@@ -19,7 +19,7 @@
         - uses: actions/setup-node@v2
           with:
             node-version: 16
-        - run: cd server
-        - run: npm install
-        - run: npm ci
-        - run: npm test
+        - run:
+            cd ./server
+            npm install
+            npm test
