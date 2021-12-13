@@ -1,0 +1,13 @@
+  name: test
+
+  on: push
+  jobs:
+    job1:
+      name: test1
+      runs-on: ubuntu-latest
+      steps:
+        - name: echo hello
+          env:
+            MY_VAR: Hi there! My name is yanyue
+          run:
+            echo $MY_VAR
