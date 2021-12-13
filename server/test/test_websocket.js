@@ -34,14 +34,28 @@ describe("test db", function(){
         assert.equal(out, true)
     })
 
-    // var callback = function(word){ console.log(word) }
-    // it("should insert success", function(){
-    //     var SQL_insert_user = websocket.__get__('SQL_insert_user')
-    //     var out = SQL_insert_user('yanyue', '12345', callback)
-    //     assert.equal(out, true)
-    // })
+    it("yanyue should insert success", function(){
+        var SQL_insert_user = websocket.__get__('SQL_insert_user')
+        SQL_insert_user('yanyue', '12345', function (resp){
+            // 根据 callback 的resp参数来确定返回值
+            if (resp === 'USERNAME_INVALID'){
+                assert.ok(true)    // 默认成功
+            } else if(resp === 'REG_SUCCESS'){
+                assert.ok(false)
+            }
+        })
+    })
 
-    
-    // let sql_insert_user = 'INSERT INTO USER VALUES (\'' + 'username' + '\',\'' + 'password' + '\');'
-    // db.run(sql_insert_user)
+    it("yanyue again should insert false, 不能重复注册", function(){
+        var SQL_insert_user = websocket.__get__('SQL_insert_user')
+        SQL_insert_user('yanyue', '12345', function (resp){
+            // 根据 callback 的resp参数来确定返回值
+            if (resp === 'USERNAME_INVALID'){
+                assert.ok(false)
+            } else if(resp === 'REG_SUCCESS'){
+                assert.ok(true)
+            }
+        })
+    })
+
 })
