@@ -1,0 +1,25 @@
+  name: test
+
+  on: push
+  jobs:
+    job1:
+      name: test1
+      runs-on: ubuntu-latest
+      steps:
+        - name: echo hello
+          env:
+            MY_VAR: Hi there! My name is yanyue
+          run:
+            echo $MY_VAR
+
+    build:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+        - uses: actions/setup-node@v2
+          with:
+            node-version: 16
+        - run: |
+            cd ./server
+            npm install
+            npm test
