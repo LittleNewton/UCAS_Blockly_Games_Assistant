@@ -187,6 +187,14 @@ function clear_server_game_content () {
 
 
 // Content Script 发送消息到 Background
-function say_hi () {
-    chrome.runtime.sendMessage(extension_id, {'words': "hello", 'name': 'inject.js'})
-}
+let port = chrome.runtime.connect(extension_id, {name: "BG_Extension"});
+port.postMessage({joke: "Knock knock"});
+port.onMessage.addListener(function (msg) {
+    if (msg.question === "Who's there?") {
+        console.log((msg.question))
+        port.postMessage({answer: "Madame"});
+    } else if (msg.question === "Madame who?") {
+        console.log((msg.question))
+        port.postMessage({answer: "Madame... Bovary"});
+    }
+});
