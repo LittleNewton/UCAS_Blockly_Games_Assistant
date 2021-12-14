@@ -2,14 +2,14 @@
     // 清单文件的版本
     "manifest_version": 2,
     // 插件名称
-    "name": "A国科大积木编程助手",
+    "name": "果壳积木编程助手",
     // 插件版本
-    "version": "1.0",
+    "version": "1.1",
     // 插件描述
     "description": "blockly.games 网站的使用助手，可完成云同步功能",
     "icons": {
-        "16": "images/icon.png",
-        "48": "images/icon.png",
+        "16":  "images/icon.png",
+        "48":  "images/icon.png",
         "128": "images/icon.png"
     },
 
@@ -19,7 +19,7 @@
     "browser_action": {
         "default_icon": "images/icon.png",
         // 图标悬停时的标题
-        "default_title": "国科大积木编程助手",
+        "default_title": "果壳积木编程助手",
         "default_popup": "popup.html"
     },
     // 当某些特定页面打开才显示的图标
@@ -29,10 +29,10 @@
     // 需要直接注入页面的 js
     "content_scripts": [
         {
-            "matches": ["https://blockly.games/*"],
-            "js": ["js/content-scripts.js"],
-            "css": ["css/custom.css"],
-            "run_at": "document_start"
+            "matches":  ["https://blockly.games/*"],
+            "js":       ["js/content-scripts.js"],
+            "css":      ["css/custom.css"],
+            "run_at":   "document_start"
         }
     ],
 
@@ -53,9 +53,14 @@
         "webRequest",                   // web请求
         "webRequestBlocking",
         "storage",                      // 插件本地存储
-        "https://blockly.games/",       // 可以通过executeScript或者insertCSS访问的网站
-        "https://blockly.games/"        // 可以通过executeScript或者insertCSS访问的网站
+        "https://blockly.games/"       // 可以通过executeScript或者insertCSS访问的网站
     ],
+
+
+
+    "externally_connectable": {
+        "matches": ["https://blockly.games/*"]
+    },
 
 
 
@@ -65,9 +70,9 @@
 
 
     // 插件主页
-    "homepage_url": "https://www.baidu.com"
+    "homepage_url": "https://ucas.ac.cn",
 
 
     // 默认语言
-    // "dfault_locale": "zh_CN"
+    "dfault_locale": "zh_CN"
 }
