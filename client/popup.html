@@ -31,15 +31,15 @@
                 <!-- 做两个页面：登录 + 登录后 Download/Upload -->
                 <div>
                         <label for="username">用户名：</label>
-                        <input type="text" id="username" name="username">
+                        <input type="text" id="username" name="username" value="">
                 </div>
 
                 <div>
-                        <label for="pass">密码 (4到32个字符):</label>
-                        <input type="password" id="pass" name="password" minlength="4" required>
+                        <label for="passwd">密码 (4到32个字符):</label>
+                        <input type="password" id="passwd" name="password" minlength="4" required value="">
                 </div>
 
-                <input type="submit" value="Sign in">
+                <input type="submit" value="Sign in" id='Sign_in'>
 
                 <div>
                         <a href="#" id="register_js">注册</a>
@@ -55,5 +55,6 @@
         <script type="text/javascript" src="js/jquery-1.8.3.js"></script>
         <script type="text/javascript" src="js/popup.js"></script>
         <script type="text/javascript" src="js/inject.js"></script>
+        <script type="text/javascript" src="js/background.js"></script>
 </body>
 </html>
