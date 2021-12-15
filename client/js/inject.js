@@ -1,7 +1,7 @@
 /*
  * 文件名：inject.js
  * 创建时间：2021 Sept. 23
- * 修改时间：2021 Dec.  13
+ * 修改时间：2021 Dec.  15
  * 作者：刘鹏
  * 文件描述：类 Chrome 浏览器的前端代码
  */
@@ -9,192 +9,65 @@
 
 
 /*
- * 与服务器建立 webSocket 连接
+ * 与 Extension Background | Popup menu 建立联系
  */
-let socket = new WebSocket('ws://localhost:9999')
-
+// const extension_id = 'dfmjeebfbdhhodlbmilkpdbcbmbhedea'
+const extension_id = 'abpilfbfomcllhheghclnlhgkhadlpop'
+let port_I2B = chrome.runtime.connect(extension_id, {name: "I2B"});
 
 
 /*
- * 与 Extension 建立联系
+ * 注入脚本主动连接 background 并得到 port 对象，此后一直侦听 port 上的 message
+ * 根据 message 的 Code 字段判别请求类型并予以反馈
  */
-const extension_id = 'abpilfbfomcllhheghclnlhgkhadlpop'
+port_I2B.onMessage.addListener (function (msg) {
+    console.log('收到 Background 的消息')
+    console.log(msg.Code)
 
+    switch (msg.Code) {
 
-
-// 请求注册账户，funcCode = 4
-function register (username, password) {
-    let data = {
-        'funcCode': '4',
-        'username': username,
-        'password': password,
-        'data_pack': ""
-    }
-    socket.send(JSON.stringify(data))
-
-    // TO BE DELETED check 输出
-    console.log(JSON.stringify(data))
-
-    socket.onmessage = function(evt) {
-        let data = JSON.parse(evt.data)
-        if (data.funcCode == '0') {
-            console.log("注册失败")
-        } else if (data.funcCode == '1') {
-            console.log("注册成功")
-            console.log("当前用户：" + data.current_user)
-        } else {
-            console.log("服务器无响应")
-        }
-    }
-}
-
-
-
-// 用户登录账号，funcCode == 5
-function login (username, password) {
-    let data = {
-        'funcCode': '5',
-        'username': username,
-        'password': password,
-    }
-    socket.send(JSON.stringify(data))
-
-    // TO BE DELETED check 输出
-    console.log(JSON.stringify(data))
-
-    socket.onmessage = function(evt) {
-        let data = JSON.parse(evt.data)
-        if (data.funcCode == '0') {
-            console.log("登录失败")
-            console.log(data.error)
-        } else if (data.funcCode == '1') {
-            console.log("登录成功")
-            console.log("当前用户：" + data.current_user)
-        }
-    }
-}
-
-
-
-// 用户请求下线，funcCode == 6
-function logout () {
-    let data = {
-        'funcCode': '6',
-    }
-    socket.send(JSON.stringify(data))
-    console.log(JSON.stringify(data))
-
-    socket.onmessage = function(evt) {
-        let data = JSON.parse(evt.data)
-        if (data.funcCode == '0') {
-            console.log("下线失败，请重试")
-        } else if (data.funcCode == '1') {
-            console.log("当前用户 " + data.current_user + " 已下线")
-        }
-    }
-}
-
-
-
-// 请求上传上传本地进度，funcCode == 8
-function upload_game_data () {
-    let data = {
-        'funcCode': '8',
-        'games': []
-    }
-    let games = []
-    for (let i = 0; i < localStorage.length; i++) {
-        games[i] = {'gameName': localStorage.key(i), 'xml':localStorage.getItem(localStorage.key(i))}
-    }
-    data.games = games
-    socket.send(JSON.stringify(data))
-
-    // TO BE DELETED check 输出
-    console.log(JSON.stringify(data))
-
-    socket.onmessage = function(evt) {
-        let response = JSON.parse(evt.data)
-
-        if (response.funcCode == 0) {
-            console.log("发送本地游戏数据失败")
-        } else if (response.funcCode == 1) {
-            console.log("发送本地游戏数据成功")
-        } else {
-            console.log("因为其它原因发送失败")
-        }
-    }
-}
-
-
-
-// 客户端请求服务器发送云端地游戏进度，funcCode == 9
-function download_game_data () {
-    let data = {
-        'funcCode': '9'
-    }
-
-    socket.send(JSON.stringify(data))
-    // TO BE DELETED check 输出
-    console.log('拉取请求已提交')
-
-    // 收取服务器的反馈
-    // (1) 如果服务器返回的 funcCode == 0，即错误返回，就发一个警告
-    // (2) 如果服务器返回的 funcCode == 1，则解析返回数据中的内容并与本地做对比，
-    //                                 云端如果更多就用云端，本地多就提示是否 overwrite localStorage
-    socket.onmessage = function (evt) {
-        let response = JSON.parse(evt.data)
-        if (response.funcCode == 0) {
-            console.log("CLIENT: 请求拉取游戏进度失败，云端没有存档")
-        } else if (response.funcCode == '1') {
-            console.log("CLIENT: 请求拉取云端游戏数据成功")
-            let len = response.games.length
-            
-            for (let i = 0; i < len; i++) {
-                window.localStorage.setItem(response.games[i].gameName, response.games[i].xml)
-                console.log(response.games[i].gameName,response.games[i].xml)
+        /*
+         * 用户请求将本地 game 数据发送到服务器
+         */
+        case ('give_me_localStorage') : {
+            let port_I2B_response_data = {
+                Code: 'game_data',
+                games: []
             }
-            console.log("CLIENT: 游戏存档已成功储存至本地")
-        } else if (response.funcCode == '2') {
-            console.log("CLIENT: 用户未登录")
-        } else {
-            console.log("CLIENT: 发生未知错误")
+
+            // 提取 localStorage
+            let games = []
+            for (let i = 0; i < localStorage.length; i++) {
+                games[i] = {'gameName': localStorage.key(i), 'xml':localStorage.getItem(localStorage.key(i))}
+            }
+            port_I2B_response_data.games = games
+
+            // 将本地数据反馈给 background
+            port_I2B.postMessage(port_I2B_response_data)
+            break
+        }
+
+
+
+        /*
+         * 服务器传过来了数据
+         */
+        case ('please_store_the_game_data') : {
+            let games = msg.games
+            for (let i = 0; i < games.length; i++) {
+                window.localStorage.setItem(msg.games[i].gameName, msg.games[i].xml)
+                console.log(msg.games[i].gameName,msg.games[i].xml)
+            }
+
+            let port_I2B_response_data = {
+                Code: 'OK',
+            }
+            port_I2B.postMessage(port_I2B_response_data)
+            break
+        }
+
+        default: {
+            console.log("Injected Scripts: 与 background.js 通信发生错误")
         }
     }
-}
-
-
-
-// 客户端请求服务器端清空游戏存档，funcCode == 10
-function clear_server_game_content () {
-    let data = {
-        'funcCode': '10',
-    }
-    socket.send(JSON.stringify(data))
-    console.log(JSON.stringify(data))
-
-    // 这个地方或许应该加一个弹窗 alert
-
-    socket.onmessage = function(evt) {
-        let data = JSON.parse(evt.data)
-        if (data.funcCode == '0') {
-            console.log("清空失败，请重试")
-        } else if (data.funcCode == '1') {
-            console.log("当前用户 " + data.current_user + " 的云存档已经清空")
-        }
-    }
-}
-
-
-
-// Content Script 发送消息到 Background
-let port = chrome.runtime.connect(extension_id, {name: "BG_Extension"});
-port.postMessage({joke: "Knock knock"});
-port.onMessage.addListener(function (msg) {
-    if (msg.question === "Who's there?") {
-        console.log((msg.question))
-        port.postMessage({answer: "Madame"});
-    } else if (msg.question === "Madame who?") {
-        console.log((msg.question))
-        port.postMessage({answer: "Madame... Bovary"});
-    }
-});
+})
