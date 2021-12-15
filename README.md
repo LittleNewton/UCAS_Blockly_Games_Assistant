@@ -32,7 +32,15 @@ npm install
 最后，通过运行以下命令即可开启 server 端服务进程：
 
 ``` zsh
+cd server    # 注意，必须在 server 目录里执行，因为数据库引用是相对引用
 node websocket.js
+```
+
+如果你想在公网服务器上部署服务端代码，只需要在 `client/js/background.js` 里所有的 `localhost` 字符更改为你的 IP 或 域名即可，同时注意在你服务器的防火墙里打开 `9999` 端口的 `INPUT` 权限。
+
+测试：
+
+```
 npm run start   # 和上一条语句同一个作用
 npm run test    # 运行所有测试
 ```
@@ -55,31 +63,35 @@ npm run test    # 运行所有测试
 
 ![c](images/upload-unpacked-extension.png)
 
-目前只实现了核心的函数，所以只允许在 Chrome 系浏览器的 Console 里直接调用函数以使用功能。
+![c](images/ui.png)
+
+> NOTE: 目前插件的 UI 还不好看，且只允许在 Chrome 系浏览器的 Console 里使用该插件，亲测 FireFox 不可用。
+
+支持的平台：
+
+- Microsoft Edge (Chromium)
+- Google Chrome
 
 ## 2. 使用方法
 
-### 2.1 初阶使用
+### 2.1 使用说明
 
 首先启动服务端程序：
 
 ``` zsh
+cd server
 node websocket.js
 ```
 
-然后按照安装指南，在 Chrome 系浏览器里安装插件。之后打开 www.blockly.games 网站，并打开 Console 控制台。
+然后按照安装指南，在 Chrome 系浏览器里安装插件。按照插件的 UI 提示操作即可。
 
-1. 控制台里输入命令 `register('Lisa', '12345678')`，即可注册 Lisa 用户，注册成功自动登录，注册失败也会有说明。
-2. 控制台里输入 `login('Lisa', 'xxx')`，系统提示当前用户 Lisa 已登录。
-3. 控制台里输入 `login('newton', '7789')`，系统提示当前用户切换为 newton. 不过 newton 和 Lisa 会共享当前的 LocalStorage.
-4. 控制台里输入 `download_game_data()`，浏览器自动请求当前用户的云端数据，并于本地数据合并。如果云端存档与本地通关方案不同，本地会被覆盖。
-5. 控制台里输入 `upload_game_data()`，浏览器自动上传本地数据到云端，与拉取云端数据相反，如果本地与云端不一致，本地数据会被保存，云端不会被覆盖。
+> NOTE: 唯一值得注意的是，在操作积木编程助手插件的小窗口进行上传、下载时，务必保证当前浏览器界是 blockly.games 网站。
 
 ![DB](images/sqlite3_game_data.png)
 
 ### 2.2 后续使用
 
-使用 WebUI，方便普通用户使用。
+后续会使用 CSS 优化 WebUI，方便普通用户使用。
 
 ## 3. 开发者教程
 
