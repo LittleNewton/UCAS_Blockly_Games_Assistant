@@ -284,7 +284,7 @@ webSocketServer.on('connection', function connection(ws) {
                     let game_data = data.games
 
                     // 判断 data.games 字段的长度，防止有人乱发东西，必要的时候加 SQL 注入防护
-                    if (game_data.length == 0 || Object.keys(game_data[0]).length != 2) {
+                    if (game_data === undefined || game_data.length == 0 || Object.keys(game_data[0]).length != 2) {
                         console.log('SERVER: 游戏存档非法，已拒绝')
                         let data_respond = {'funcCode': '0'}
                         ws.send(JSON.stringify(data_respond))
