@@ -22,7 +22,7 @@ let socket = undefined
 let port_I2B = undefined
 chrome.runtime.onConnectExternal.addListener(function(port) {
     // port 定义务必满足要求
-    console.assert(port.name === "I2B")
+    console.assert(port.name === 'I2B')
     port_I2B = port
     console.log('BG: 已与 blockly 前台建立连接')
 })
@@ -38,7 +38,7 @@ function register (username, password) {
         'funcCode': '4',
         'username': username,
         'password': password,
-        'data_pack': ""
+        'data_pack': ''
     }
     socket = new WebSocket('ws://localhost:9999')
     socket.onopen = () => {
@@ -50,12 +50,12 @@ function register (username, password) {
         socket.onmessage = function(evt) {
             let data = JSON.parse(evt.data)
             if (data.funcCode == '0') {
-                console.log("注册失败")
+                console.log('注册失败')
             } else if (data.funcCode == '1') {
-                console.log("注册成功")
-                console.log("当前用户：" + data.current_user)
+                console.log('注册成功')
+                console.log('当前用户：' + data.current_user)
             } else {
-                console.log("服务器无响应")
+                console.log('服务器无响应')
             }
         }
     }
@@ -83,11 +83,11 @@ function login (username, password) {
         socket.onmessage = function(evt) {
             let data = JSON.parse(evt.data)
             if (data.funcCode == '0') {
-                console.log("登录失败")
+                console.log('登录失败')
                 console.log(data.error)
             } else if (data.funcCode == '1') {
-                console.log("登录成功")
-                console.log("当前用户：" + data.current_user)
+                console.log('登录成功')
+                console.log('当前用户：' + data.current_user)
             }
         }
     }
@@ -109,10 +109,10 @@ function logout () {
     socket.onmessage = function(evt) {
         let data = JSON.parse(evt.data)
         if (data.funcCode == '0') {
-            console.log("下线失败，请重试")
+            console.log('下线失败，请重试')
         } else if (data.funcCode == '1') {
             socket.close()
-            console.log("当前用户 " + data.current_user + " 已下线")
+            console.log('当前用户 ' + data.current_user + ' 已下线')
         }
     }
 }
@@ -133,9 +133,9 @@ function clear_server_game_content () {
     socket.onmessage = function(evt) {
         let data = JSON.parse(evt.data)
         if (data.funcCode == '0') {
-            console.log("清空失败，请重试")
+            console.log('清空失败，请重试')
         } else if (data.funcCode == '1') {
-            console.log("当前用户 " + data.current_user + " 的云存档已经清空")
+            console.log('当前用户 ' + data.current_user + ' 的云存档已经清空')
         }
     }
 }
@@ -150,100 +150,110 @@ function clear_server_game_content () {
  *     NOTE: 为什么要把 addListener 写在函数里呢？要理解这一点可以想象一下你通过管子给楼上的邻居发消息
  *           我用力敲一下管子 (postMessage)，然后赶紧把耳朵贴近管子，听听楼上的反馈 (Listen)，就这么简单。
  * 
- *              funcCode == 8
+ *              funcCode == 8 
+ *      and
+ *              funcCode == 9
  */
-function upload_game_data () {
+function resolve_game_data (action) {
     if (port_I2B === undefined) {
         console.assert ('Background: 用户未打开 blockly.games 或用户未连接 background.js')
     } else {
-        let port_data = {
-            'Code': 'give_me_localStorage'
-        }
-        port_I2B.postMessage (port_data)
-        port_I2B.onMessage.addListener (function (msg) {
-            console.log('Inject Script 发来的游戏数据是：' + msg.games)
+        switch (action) {
 
-            let data = {
-                'funcCode': '8',
-                'games': []
+            /*
+             * 请求 Injected Scripts 发送 localStorage
+             */
+            case ('read') : {
+                let port_data = {
+                    'Code': 'read'
+                }
+                port_I2B.postMessage (port_data)
+                break
             }
-            data.games = msg.games
 
-            // socket 发送到服务器
-            socket.send(JSON.stringify(data))
-            socket.onmessage = function(evt) {
-                let response = JSON.parse(evt.data)
+            /*
+             * 请求 Injected Scripts 写入 localStorage
+             */
+            case ('write') : {
+                // 向服务器请求下载用户的数据
+                let data = {
+                    'funcCode': '9'
+                }
+                socket.send(JSON.stringify(data))
+                console.log('拉取请求已提交')
 
-                if (response.funcCode == 0) {
-                    console.log("发送本地游戏数据失败")
-                } else if (response.funcCode == 1) {
-                    console.log("发送本地游戏数据成功")
-                } else {
-                    console.log("因为其它原因发送失败")
+                // 收取服务器的反馈
+                // (1) 如果服务器返回的 funcCode == 0，即错误返回，就发一个警告
+                // (2) 如果服务器返回的 funcCode == 1，则解析返回数据中的内容并与本地做对比，
+                //                                  增量同步，本地比云多的部分被保留，本地比云少的被填充
+                socket.onmessage = function (evt) {
+                    let response = JSON.parse(evt.data)
+                    if (response.funcCode == 0) {
+                        console.log('CLIENT: 请求拉取游戏进度失败，云端没有存档')
+                    } else if (response.funcCode == '1') {
+                        console.log('CLIENT: 请求拉取云端游戏数据成功')
+                        
+                        // 与 Injected Script 通信，发送云端下载的游戏数据
+                        let port_data = {
+                            'Code': 'write',
+                            'games': []
+                        }
+                        port_data.games = response.games
+                        port_I2B.postMessage (port_data)
+                    } else if (response.funcCode == '2') {
+                        console.log('CLIENT: 用户未登录')
+                    } else {
+                        console.log('CLIENT: 发生未知错误')
+                    }
+                }
+        
+                break
+            }
+
+            default: {
+                console.log('RESOLVE: 未能识别的操作')
+            }
+        }
+
+
+        // 侦听 Injected Scripts 的 feedback
+        port_I2B.onMessage.addListener (function (msg) {
+
+            switch (msg.Code) {
+                case ('read_done') : {
+                    console.log('Inject Script 发来的游戏数据是：' + msg.games)
+
+                    let data = {
+                        'funcCode': '8',
+                        'games': []
+                    }
+                    data.games = msg.games
+        
+                    // socket 发送到服务器
+                    socket.send(JSON.stringify(data))
+                    socket.onmessage = function(evt) {
+                        let response = JSON.parse(evt.data)
+        
+                        if (response.funcCode == 0) {
+                            console.log('发送本地游戏数据失败')
+                        } else if (response.funcCode == 1) {
+                            console.log('发送本地游戏数据成功')
+                        } else {
+                            console.log('因为其它原因发送失败')
+                        }
+                    }
+                    break
+                }
+
+                case ('write_done') : {
+                    console.log('CLIENT: 游戏存档已成功储存至本地')
+                    break
+                }
+
+                default: {
+                    console.log('RESOLVE: 发生未知错误')
                 }
             }
         })
-    }
-}
-
-
-
-/*
- * 在 popup 窗口的触发下 (下载)，
- * background 请求 Server 下载用户数据，
- * 在此要将之传送到服务器
- * 
- *     NOTE: 为什么要把 addListener 写在函数里呢？要理解这一点可以想象一下你通过管子给楼上的邻居发消息
- *           我用力敲一下管子 (postMessage)，然后赶紧把耳朵贴近管子，听听楼上的反馈 (Listen)，就这么简单。
- * 
- *              funcCode == 9
- */
-function download_game_data () {
-    if (port_I2B === undefined) {
-        console.log ('Background: 用户未打开 blockly.games 或用户未连接 background.js')
-    } else {
-        // 向服务器请求下载用户的数据
-        let data = {
-            'funcCode': '9'
-        }
-        socket.send(JSON.stringify(data))
-        // TO BE DELETED check 输出
-        console.log('拉取请求已提交')
-
-        // 收取服务器的反馈
-        // (1) 如果服务器返回的 funcCode == 0，即错误返回，就发一个警告
-        // (2) 如果服务器返回的 funcCode == 1，则解析返回数据中的内容并与本地做对比，
-        //                                  增量同步，本地比云多的部分被保留，本地比云少的被填充
-        socket.onmessage = function (evt) {
-            let response = JSON.parse(evt.data)
-            if (response.funcCode == 0) {
-                console.log("CLIENT: 请求拉取游戏进度失败，云端没有存档")
-            } else if (response.funcCode == '1') {
-                console.log("CLIENT: 请求拉取云端游戏数据成功")
-                let len = response.games.length
-                
-                // 与 Injected Script 通信，发送云端下载的游戏数据
-                let port_data = {
-                    'Code': 'please_store_the_game_data',
-                    'games': []
-                }
-                port_data.games = response.games
-                port_I2B.postMessage (port_data)
-                
-                // 侦听 Injected Script 的反馈
-                port_I2B.onMessage.addListener (function (msg) {
-                    if (msg.Code != 'OK') {
-                        console.log ('Injected Scripts 发生写入错误')
-                    } else {
-                        console.log(msg.Code)
-                        console.log("CLIENT: 游戏存档已成功储存至本地")
-                    }
-                })
-            } else if (response.funcCode == '2') {
-                console.log("CLIENT: 用户未登录")
-            } else {
-                console.log("CLIENT: 发生未知错误")
-            }
-        }
     }
 }

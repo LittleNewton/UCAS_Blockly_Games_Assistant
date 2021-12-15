@@ -13,7 +13,7 @@
  */
 // const extension_id = 'dfmjeebfbdhhodlbmilkpdbcbmbhedea'
 const extension_id = 'abpilfbfomcllhheghclnlhgkhadlpop'
-let port_I2B = chrome.runtime.connect(extension_id, {name: "I2B"});
+let port_I2B = chrome.runtime.connect(extension_id, {name: 'I2B'});
 
 
 /*
@@ -27,11 +27,11 @@ port_I2B.onMessage.addListener (function (msg) {
     switch (msg.Code) {
 
         /*
-         * 用户请求将本地 game 数据发送到服务器
+         * Read localStorage
          */
-        case ('give_me_localStorage') : {
+        case ('read') : {
             let port_I2B_response_data = {
-                Code: 'game_data',
+                Code: 'read_done',
                 games: []
             }
 
@@ -50,9 +50,9 @@ port_I2B.onMessage.addListener (function (msg) {
 
 
         /*
-         * 服务器传过来了数据
+         * write localStorage
          */
-        case ('please_store_the_game_data') : {
+        case ('write') : {
             let games = msg.games
             for (let i = 0; i < games.length; i++) {
                 window.localStorage.setItem(msg.games[i].gameName, msg.games[i].xml)
@@ -60,14 +60,14 @@ port_I2B.onMessage.addListener (function (msg) {
             }
 
             let port_I2B_response_data = {
-                Code: 'OK',
+                Code: 'write_done',
             }
             port_I2B.postMessage(port_I2B_response_data)
             break
         }
 
         default: {
-            console.log("Injected Scripts: 与 background.js 通信发生错误")
+            console.log('Injected Scripts: 与 background.js 通信发生错误')
         }
     }
 })
