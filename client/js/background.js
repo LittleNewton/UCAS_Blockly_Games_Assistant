@@ -16,6 +16,21 @@ let socket = undefined
 
 
 /*
+ * 获取 socket 全局变量的状态
+ */
+function is_socket_alive () {
+    if (socket === undefined) {
+        return false
+    } else if (socket.readyState != 1) {
+        return false
+    } else {
+        return true
+    }
+}
+
+
+
+/*
  * 侦听器，接受 inject scripts 的连接并将 port 对象传给全局变量
  * 接受各种外部 Chrome Tab 的请求
  */

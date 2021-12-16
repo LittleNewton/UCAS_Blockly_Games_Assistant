@@ -17,11 +17,17 @@ let bg = chrome.extension.getBackgroundPage();
 
 
 /*
- * 处理 cookie 和刚 popup 时的颜色北境
+ * 处理 cookie 和刚 popup 时 STATUS 的背景颜色
  */
 if (document.cookie != '') {
-    document.getElementById('status').value = document.cookie
-    set_status_color(document.cookie)
+    if (bg.is_socket_alive()) {
+        document.getElementById('status').value = document.cookie
+        set_status_color(document.cookie)
+    } else {
+        document.cookie = 'OFFLINE'
+        document.getElementById('status').value = 'OFFLINE'
+        document.getElementById('status').className = 'button status_offline'
+    }
 } else {
     document.cookie = 'OFFLINE'
     document.getElementById('status').className = 'button status_offline'
