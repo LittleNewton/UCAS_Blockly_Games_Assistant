@@ -16,6 +16,47 @@ let bg = chrome.extension.getBackgroundPage();
 
 
 
+/*
+ * 处理 cookie 和刚 popup 时的颜色北境
+ */
+if (document.cookie != '') {
+    document.getElementById('status').value = document.cookie
+    set_status_color(document.cookie)
+} else {
+    document.cookie = 'OFFLINE'
+    document.getElementById('status').className = 'button status_offline'
+}
+
+
+
+/*
+ * 处理 STATUS 框的背景色
+ */
+function set_status_color (status) {
+    switch (status) {
+        case ('ONLINE') : {
+            document.getElementById('status').className = 'button status_online'
+            break
+        }
+
+        case ('OFFLINE') : {
+            document.getElementById('status').className = 'button status_offline'
+            break
+        }
+
+        case ('ERROR') : {
+            document.getElementById('status').className = 'button status_error'
+            break
+        }
+
+        default: {
+            document.getElementById('status').className = 'button status_error'
+        }
+    }
+}
+
+
+
 // click: 打开后台页 (open_background)
 $('#open_background').click(e => {
     window.open(chrome.extension.getURL('background.html'))
@@ -26,10 +67,14 @@ $('#open_background').click(e => {
 /*
  * click: 注册 (register)
  */
-$('#register_js').click(function () {
-    let username = prompt('请输入用户名')
-    let password = prompt('请输入密码')
-    bg.register(username, password)
+$('#Register').click(function () {
+    let username = document.getElementById('username').value
+    let password = document.getElementById('passwd').value
+    bg.register(username, password, function(status) {
+        document.getElementById('status').value = status
+        set_status_color(status)
+        document.cookie = status
+    })
 })
 
 
@@ -40,8 +85,11 @@ $('#register_js').click(function () {
 $('#Sign_in').click(function () {
     let username = document.getElementById('username').value
     let password = document.getElementById('passwd').value
-    bg.login(username, password);
-    document.getElementById('username').innerText = '您已登录'
+    bg.login(username, password, function(status) {
+        document.getElementById('status').value = status
+        set_status_color(status)
+        document.cookie = status
+    });
 })
 
 
@@ -50,7 +98,11 @@ $('#Sign_in').click(function () {
  * 注销
  */
 $('#btn_logout').click (function () {
-    bg.logout()
+    bg.logout(function(status) {
+        document.getElementById('status').value = status
+        set_status_color(status)
+        document.cookie = status
+    })
 })
 
 

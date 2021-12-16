@@ -33,7 +33,7 @@ chrome.runtime.onConnectExternal.addListener(function(port) {
  * 请求注册账户：
  *                funcCode = 4
  */
-function register (username, password) {
+function register (username, password, callback) {
     let data = {
         'funcCode': '4',
         'username': username,
@@ -51,9 +51,11 @@ function register (username, password) {
             let data = JSON.parse(evt.data)
             if (data.funcCode == '0') {
                 console.log('注册失败')
+                callback('ERROR')
             } else if (data.funcCode == '1') {
                 console.log('注册成功')
                 console.log('当前用户：' + data.current_user)
+                callback('ONLINE')
             } else {
                 console.log('服务器无响应')
             }
@@ -67,7 +69,7 @@ function register (username, password) {
  * 请求登录账号：
  *                funcCode = 5
  */
-function login (username, password) {
+function login (username, password, callback) {
     let data = {
         'funcCode': '5',
         'username': username,
@@ -85,9 +87,11 @@ function login (username, password) {
             if (data.funcCode == '0') {
                 console.log('登录失败')
                 console.log(data.error)
+                callback('ERROR')
             } else if (data.funcCode == '1') {
                 console.log('登录成功')
                 console.log('当前用户：' + data.current_user)
+                callback('ONLINE')
             }
         }
     }
@@ -99,7 +103,7 @@ function login (username, password) {
  * 用户请求下线：
  *                funcCode == 6
  */
-function logout () {
+function logout (callback) {
     let data = {
         'funcCode': '6',
     }
@@ -109,10 +113,14 @@ function logout () {
     socket.onmessage = function(evt) {
         let data = JSON.parse(evt.data)
         if (data.funcCode == '0') {
+            callback('ERROR')
             console.log('下线失败，请重试')
         } else if (data.funcCode == '1') {
             socket.close()
             console.log('当前用户 ' + data.current_user + ' 已下线')
+            callback('OFFLINE')
+        } else {
+            callback('ERROR')
         }
     }
 }

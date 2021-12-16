@@ -1,61 +1,102 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-        <title>积木编程助手</title>
-        <meta charset="utf-8"/>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <style>
-        body {
-                font-family: 'Microsoft Yahei';
-                width: 400px;
-                min-height: 100px;
+    <title>积木编程助手</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style>
+        h1 {
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif
         }
-        a {margin-right: 10px;}
+
+        body {
+            font-family: sans-serif;
+            width: 205px;
+            min-height: 100px;
+            background-color: antiquewhite;
+        }
 
         label {
-                display: block;
-                font: .9rem 'Fira Sans', sans-serif;
+            display: block;
+            font: .9rem 'Fira Sans', sans-serif;
         }
 
         input[type='submit'],
 
         label {
-                margin-top: 1rem;
+            margin-top: 1rem;
         }
 
+        div {
+            margin: 2px 0;
+        }
 
-        </style>
+        .button {
+            border: 2px solid #000000;
+            border-radius: 4px;
+            background-color: rgb(252, 247, 0);
+            padding: auto;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: auto;
+            margin: auto;
+            cursor: pointer;
+            width: max-content;
+        }
+
+        .status_offline {
+            background-color: rgb(119, 118, 118);
+        }
+
+        .status_online {
+            background-color: rgb(51, 197, 7);
+        }
+
+        .status_error {
+            background-color: rgb(248, 27, 71);
+        }
+    </style>
 </head>
+
 <body>
-        <h1>积木编程助手</h1>
+    <h1>Blockly Asistant</h1>
+    <div>
+        <!-- 输入用户名 -->
         <div>
-                <!-- 做两个页面：登录 + 登录后 Download/Upload -->
-                <div>
-                        <label for="username">用户名：</label>
-                        <input type="text" id="username" name="username" value="">
-                </div>
-
-                <div>
-                        <label for="passwd">密码 (4到32个字符):</label>
-                        <input type="password" id="passwd" name="password" minlength="4" required value="">
-                </div>
-
-                <input type="submit" value="Sign in" id='Sign_in'>
-
-                <div>
-                        <a href="#" id="register_js">注册</a>
-                        <a href="#" id="login_js">登录</a>
-                        <a href="#" id="btn_logout">注销</a>
-                </div>
-        </div>
-                <a href="#" id="btn_download_data">下载游戏数据</a>
-                <a href="#" id="btn_upload_data">上传游戏数据</a>
-        <div>
-                <a href="#" id="open_background">打开后台</a>
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" value="">
         </div>
 
-        <script type="text/javascript" src="js/jquery-1.8.3.js"></script>
-        <script type="text/javascript" src="js/popup.js"></script>
-        <script type="text/javascript" src="js/background.js"></script>
+        <!-- 输入密码 -->
+        <div>
+            <label for="passwd">Password:</label>
+            <input type="password" id="passwd" name="password" minlength="4" required value="">
+        </div>
+
+        <!-- 登录 + 注册 + STATUS -->
+        <input type="submit" class="button" value="Sign in" id='Sign_in'>
+        <input type="submit" class="button" value="Register" id='Register'>
+        <input type="submit" class="button status_offline" value="" id='status'>
+
+        <!-- 注销 -->
+        <div>
+            <input type="submit" class="button" value="Logout" id='btn_logout'>
+        </div>
+    
+    <!-- 上传 + 下载 -->
+    </div>
+    <input type="submit" class="button" value="Download Data" id='btn_download_data'>
+    <input type="submit" class="button" value="Upload Data" id='btn_upload_data'>
+
+    <!-- 打开后台（很少用） -->
+    <div>
+        <input type="submit" class="button" value="Settings" id='open_background'>
+    </div>
+
+    <script type="text/javascript" src="js/jquery-1.8.3.js"></script>
+    <script type="text/javascript" src="js/popup.js"></script>
+    <script type="text/javascript" src="js/background.js"></script>
 </body>
 </html>
